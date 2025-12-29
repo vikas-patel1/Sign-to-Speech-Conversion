@@ -15,6 +15,13 @@ KEYPOINTS = [0, 4, 5, 9, 13, 17, 8, 12, 16, 20]
 SAMPLES_PER_GESTURE = 30
 TOLERANCE = 15
 
+# ---------------- PATH SETUP ---------------- #
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+GESTURE_DIR = os.path.join(BASE_DIR, "gesture_files")
+
+os.makedirs(GESTURE_DIR, exist_ok=True)
+
 # ---------------- MODE ---------------- #
 
 mode = int(input("Enter 1 to train, enter 0 to recognize: "))
@@ -33,27 +40,30 @@ train_idx = 0
 
 # ---------------- LOAD / TRAIN FILE ---------------- #
 
+
 if mode == 1:
     n = int(input("How many gestures? "))
     for i in range(n):
         gesture_names.append(input(f"Name for gesture #{i+1}: "))
 
-    file_name = input("Training file name (default): ") 
-
+    file_name = input("Training file name (default): ").strip()
     if file_name == "":
         file_name = "default"
-    file_name += ".pkl"
-
 
 else:
-    file_name = input("Training file to load (default): ")
+    file_name = input("Training file to load (default): ").strip()
     if file_name == "":
         file_name = "default"
-    file_name += ".pkl"
-    
 
 
-    with open(file_name, "rb") as f:
+file_path = os.path.join(GESTURE_DIR, file_name + ".pkl")
+
+
+if mode == 0:
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"No training file found at {file_path}")
+
+    with open(file_path, "rb") as f:
         gesture_names = pickle.load(f)
         known_gestures = pickle.load(f)
 
@@ -90,7 +100,7 @@ while True:
             train_idx += 1
 
             if train_idx == len(gesture_names):
-                with open(file_name, "wb") as f:
+                with open(file_path, "wb") as f:
                     pickle.dump(gesture_names, f)
                     pickle.dump(known_gestures, f)
                 print("Training completed")
